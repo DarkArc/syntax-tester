@@ -1,0 +1,67 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Syntax Tester</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/styles/atom-one-dark.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/languages/cpp.min.js"></script>
+    <script src="./scripts/highlightjs-vue.min.js"></script>
+  </head>
+  <body style="background-color: #151920">
+    <div id="app">
+      <h1 style="color: white">Style Test for Operator {{operator}}</h1>
+      <input v-model="operator" />
+      <div v-for="template in templates">
+        <highlightjs language="c++" :code="template.code" />
+      </div>
+    </div>
+    <script>
+      const { createApp, ref, computed, watch } = Vue;
+
+      let app = createApp({
+        setup() {
+          let urlParams = new URLSearchParams(window.location.search);
+          let startingOperator = "^";
+          if (urlParams.has("op")) {
+            startingOperator = urlParams.get("op");
+          }
+
+          const operator = ref(startingOperator);
+          watch(operator, async (newOperator, oldOperator) => {
+            let baseURL = window.location.href.split("?")[0];
+            let urlParams = new URLSearchParams();
+            urlParams.set("op", newOperator);
+            console.log(baseURL + urlParams);
+            window.history.replaceState({}, "", baseURL + "?" + urlParams);
+          });
+          const templates = computed(() => {
+            let templates = [
+              "constexpr auto r = {op}int;",
+              "template for (constexpr auto e : enumerators_of({op}E)) /* ... */",
+              "constexpr auto s = {op}[:R:]::inner::member;",
+              "fn<{op}R>();",
+              "wrapper<inner_wrapper<{op}T>>",
+            ];
+            let codeObjects = [];
+            templates.forEach((templ) => {
+              codeObjects.push({
+                code: templ.replace("{op}", operator.value),
+              });
+            });
+            return codeObjects;
+          });
+          return {
+            operator,
+            templates,
+          };
+        },
+      });
+      app.use(hljsVuePlugin);
+      app.mount("#app");
+    </script>
+  </body>
+</html>
