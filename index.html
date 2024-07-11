@@ -35,7 +35,6 @@
             let baseURL = window.location.href.split("?")[0];
             let urlParams = new URLSearchParams();
             urlParams.set("op", newOperator);
-            console.log(baseURL + urlParams);
             window.history.replaceState({}, "", baseURL + "?" + urlParams);
           });
           const templates = computed(() => {
