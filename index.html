@@ -44,7 +44,10 @@
               "template for (constexpr auto e : enumerators_of({op}E)) /* ... */",
               "constexpr auto s = {op}[:R:]::inner::member;",
               "fn<{op}R>();",
+              "fn<10, {op}R>();",
               "wrapper<inner_wrapper<{op}T>>",
+              "[: {op}int :]",
+              "[:{op}int:]",
             ];
             let codeObjects = [];
             templates.forEach((templ) => {
