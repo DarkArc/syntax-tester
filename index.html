@@ -13,8 +13,11 @@
   </head>
   <body style="background-color: #151920">
     <div id="app">
-      <h1 style="color: white">Style Test for Operator {{operator}}</h1>
+      <h1 style="color: white">
+        Style Test for Operator {{operator}}{{operatorSuffix}}
+      </h1>
       <input v-model="operator" />
+      <input v-model="operatorSuffix" />
       <div v-for="template in templates">
         <highlightjs language="c++" :code="template.code" />
       </div>
@@ -29,37 +32,54 @@
           if (urlParams.has("op")) {
             startingOperator = urlParams.get("op");
           }
+          let startingSOperator = "";
+          if (urlParams.has("sop")) {
+            startingSOperator = urlParams.get("sop");
+          }
 
           const operator = ref(startingOperator);
-          watch(operator, async (newOperator, oldOperator) => {
+          const operatorSuffix = ref(startingSOperator);
+
+          let buildWindow = (primOp, suffixOp) => {
             let baseURL = window.location.href.split("?")[0];
             let urlParams = new URLSearchParams();
-            urlParams.set("op", newOperator);
+            urlParams.set("op", primOp);
+            urlParams.set("sop", suffixOp);
             window.history.replaceState({}, "", baseURL + "?" + urlParams);
+          };
+
+          watch(operator, async (newOperator, oldOperator) => {
+            buildWindow(newOperator, operatorSuffix.value);
+          });
+          watch(operatorSuffix, async (newOperator, oldOperator) => {
+            buildWindow(operator.value, newOperator);
           });
           const templates = computed(() => {
             let templates = [
-              "constexpr auto r = {op}int;",
-              "template for (constexpr auto e : enumerators_of({op}E)) /* ... */",
-              "constexpr auto s = {op}[:R:]::inner::member;",
-              "fn<{op}R>();",
-              "fn<10, {op}R>();",
-              "wrapper<inner_wrapper<{op}T>>",
-              "[: {op}int :]",
-              "[:{op}int:]",
-              "constexpr auto r_of_r = {op}{op}X",
-              "#define Reflect(X) {op}X",
+              "constexpr auto r = {op}int{sop};",
+              "template for (constexpr auto e : enumerators_of({op}E{sop})) /* ... */",
+              "constexpr auto s = {op}[:R:]::inner::member{sop};",
+              "fn<{op}R{sop}>();",
+              "fn<10, {op}R{sop}>();",
+              "wrapper<inner_wrapper<{op}T{sop}>>",
+              "[: {op}int{sop} :]",
+              "[:{op}int{sop}:]",
+              "constexpr auto r_of_r = {op}{op}X{sop}{sop}",
+              "#define Reflect(X) {op}X{sop}",
             ];
             let codeObjects = [];
             templates.forEach((templ) => {
               codeObjects.push({
-                code: templ.replaceAll("{op}", operator.value),
+                code: templ
+                  .replaceAll("{op}", operator.value)
+                  .replaceAll("{sop}", operatorSuffix.value),
               });
             });
             return codeObjects;
           });
           return {
             operator,
+            operatorSuffix,
             templates,
           };
         },
